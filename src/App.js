@@ -1,10 +1,12 @@
 import React from "react";
-import Signup from "./components/SignUp";
+import AuthPage from "./components/Auth/AuthPage";
+// import Signup from "./components/SignUp";
 
 function App() {
   return (
     <div className="App">
-      <Signup />
+      {/* <Signup /> */}
+      <AuthPage />
     </div>
   );
 }

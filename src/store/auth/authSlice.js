@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-// Async thunk for signing up the user
+// signupUser and loginUser with enhanced error handling
 export const signupUser = createAsyncThunk(
   "auth/signupUser",
   async ({ email, password }, { rejectWithValue }) => {
@@ -12,9 +12,27 @@ export const signupUser = createAsyncThunk(
       );
       return response.data;
     } catch (error) {
-      return rejectWithValue(
-        error.response.data.error.message || "Signup failed!"
-      );
+      const message = error.response?.data?.error?.message || "Signup failed!";
+      return rejectWithValue(message);
+    }
+  }
+);
+
+export const loginUser = createAsyncThunk(
+  "auth/loginUser",
+  async ({ email, password }, { rejectWithValue }) => {
+    try {
+      const loginUrl = `${process.env.REACT_APP_FIREBASE_LOGIN_URL}${process.env.REACT_APP_FIREBASE_API_KEY}`;
+      console.log("Login URL:", loginUrl); // Log the final URL for debugging
+      const response = await axios.post(loginUrl, {
+        email,
+        password,
+        returnSecureToken: true,
+      });
+      return response.data;
+    } catch (error) {
+      const message = error.response?.data?.error?.message || "Login failed!";
+      return rejectWithValue(message);
     }
   }
 );
@@ -29,7 +47,7 @@ const authSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      // Signup
+      // Signup actions
       .addCase(signupUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -39,6 +57,20 @@ const authSlice = createSlice({
         state.user = action.payload;
       })
       .addCase(signupUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Login actions
+      .addCase(loginUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(loginUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload;
+      })
+      .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
