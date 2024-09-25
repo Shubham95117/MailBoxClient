@@ -1,26 +1,27 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { signupUser, loginUser } from "../../store/auth/authSlice";
-import "./AuthForm.css"; // Import the CSS file
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
+import "./AuthForm.css";
 
 const AuthForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLogin, setIsLogin] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const dispatch = useDispatch();
   const { loading, error, user } = useSelector((state) => state.auth);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    // Ensure passwords match when signing up
     if (!isLogin && password !== confirmPassword) {
       alert("Passwords do not match!");
       return;
     }
-
-    // Dispatch signup or login action
     if (isLogin) {
       dispatch(loginUser({ email, password }));
     } else {
@@ -36,10 +37,7 @@ const AuthForm = () => {
     <div className="auth-container">
       <form className="auth-form" onSubmit={handleSubmit}>
         <h2>{isLogin ? "Login" : "Sign Up"}</h2>
-
-        {/* Show error message at the top if it exists */}
         {error && <p className="error-message">{error}</p>}
-
         <div>
           <label>Email:</label>
           <input
@@ -49,29 +47,40 @@ const AuthForm = () => {
             required
           />
         </div>
-        <div>
+        <div className="password-container">
           <label>Password:</label>
           <input
-            type="password"
+            type={showPassword ? "text" : "password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
+          <span
+            className="password-toggle-icon"
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+          </span>
         </div>
-
-        {/* Confirm password only for signup */}
         {!isLogin && (
-          <div>
+          <div className="password-container">
             <label>Confirm Password:</label>
             <input
-              type="password"
+              type={showConfirmPassword ? "text" : "password"}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
             />
+            <span
+              className="password-toggle-icon"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+            >
+              <FontAwesomeIcon
+                icon={showConfirmPassword ? faEyeSlash : faEye}
+              />
+            </span>
           </div>
         )}
-
         <button type="submit" disabled={loading}>
           {loading
             ? isLogin
@@ -81,12 +90,7 @@ const AuthForm = () => {
             ? "Login"
             : "Sign Up"}
         </button>
-
-        {/* Success message */}
-        {user && (
-          <p className="success-message">Success! Welcome, {user.email}</p>
-        )}
-
+        {user && <p className="success-message">Welcome, {user.email}!</p>}
         <div className="switch-mode">
           <span>
             {isLogin ? "Don't have an account?" : "Already have an account?"}

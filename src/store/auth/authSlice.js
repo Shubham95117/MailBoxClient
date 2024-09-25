@@ -1,19 +1,20 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-// signupUser and loginUser with enhanced error handling
+// Thunks for signup and login
 export const signupUser = createAsyncThunk(
   "auth/signupUser",
   async ({ email, password }, { rejectWithValue }) => {
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_FIREBASE_SIGNUP_URL}${process.env.REACT_APP_FIREBASE_API_KEY}`,
+        `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${process.env.REACT_APP_FIREBASE_API_KEY}`,
         { email, password, returnSecureToken: true }
       );
       return response.data;
     } catch (error) {
-      const message = error.response?.data?.error?.message || "Signup failed!";
-      return rejectWithValue(message);
+      return rejectWithValue(
+        error.response.data.error.message || "Signup failed"
+      );
     }
   }
 );
@@ -22,17 +23,15 @@ export const loginUser = createAsyncThunk(
   "auth/loginUser",
   async ({ email, password }, { rejectWithValue }) => {
     try {
-      const loginUrl = `${process.env.REACT_APP_FIREBASE_LOGIN_URL}${process.env.REACT_APP_FIREBASE_API_KEY}`;
-      console.log("Login URL:", loginUrl); // Log the final URL for debugging
-      const response = await axios.post(loginUrl, {
-        email,
-        password,
-        returnSecureToken: true,
-      });
+      const response = await axios.post(
+        `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${process.env.REACT_APP_FIREBASE_API_KEY}`,
+        { email, password, returnSecureToken: true }
+      );
       return response.data;
     } catch (error) {
-      const message = error.response?.data?.error?.message || "Login failed!";
-      return rejectWithValue(message);
+      return rejectWithValue(
+        error.response.data.error.message || "Login failed"
+      );
     }
   }
 );
@@ -47,7 +46,7 @@ const authSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      // Signup actions
+      // Handle signup
       .addCase(signupUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -60,8 +59,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-
-      // Login actions
+      // Handle login
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
         state.error = null;
